@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 @staticmethod
 def show_initial_menu():
     print("=== Personal Finance Tracker ===\n"
@@ -15,3 +18,4 @@ def show_initial_menu():
         "11. Exit"
           )
     return input("Choose an option (0-11):")
+
