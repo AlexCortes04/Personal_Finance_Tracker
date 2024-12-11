@@ -1,5 +1,4 @@
 from view import show_initial_menu
-from analysis import spending_by_category, monthly_spending, top_spending_category, plot_monthly_spending
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -43,16 +42,18 @@ class Finances:
                 case 5:
                     self.delete_transaction()
                 case 6:
-                    spending_by_category()
+                    self.spending_by_category_to_date()
                 case 7:
-                    monthly_spending()
+                    self.monthly_spend_to_date()
                 case 8:
-                    top_spending_category()
+                    self.top_spending_category()
                 case 9:
-                    plot_monthly_spending()
+                    self.plot_monthly_spending()
                 case 10:
-                    pass
+                    self.historical_monthly_spending()
                 case 11:
+                    self.save_csv()
+                case 12:
                     print("Exiting the Personal Finance Tracker. Goodbye!")
                     exit()
 
@@ -115,42 +116,97 @@ class Finances:
         # payment method
 
         self.data.loc[len(self.data)] = new_row
-        print("Transaction added successfully!")
+        print("Transaction added successfully!\n")
 
     def edit_transaction(self):
         index_row = int(input("Enter the index of the transaction to edit: "))
         if index_row in self.data.index:
+            # Display current details
+            print("Current Transaction Details:")
             print(self.data.loc[index_row])
         else:
             print("Invalid index")
 
         date = input("Enter new date (YYYY-MM-DD) or press Enter to keep current: ")
-        if not date == "":
+        # If user input a value, changes occur
+        if date:
             self.data.loc[index_row, 'Date'] = date
         category = input("Enter new category or press Enter to keep current: ")
-        if not date == "":
+        if category:
             self.data.loc[index_row, 'Category'] = category
         description = input("Enter new description or press Enter to keep current: ")
-        if not date == "":
+        if description:
             self.data.loc[index_row, 'Description'] = description
         amount = input("Enter new amount or press Enter to keep current: ")
-        if not date == "":
-            self.data.loc[index_row, 'Amount'] = amount
-        type = input("Enter the type ('Expense' or 'Income'): ")
-        if not date == "":
-            self.data.loc[index_row, 'Type'] = type
+        if amount:
+            self.data.loc[index_row, 'Amount'] = float(amount)  # Ensure it is converted to float
+        type_x = input("Enter the type ('Expense' or 'Income'): ")
+        if type:
+            self.data.loc[index_row, 'Type'] = type_x
 
-        print(self.data.loc[index_row])
+        # Confirm update
         print("Transaction updated successfully!")
+        print(self.data.loc[index_row])
 
     def delete_transaction(self):
         index_row = int(input("Enter the index of the transaction to delete: "))
         if index_row in self.data.index:
+            # Display current details
+            print("Transaction Details:")
             print(self.data.loc[index_row])
-            self.data.drop(index=index_row)
-            print("Transaction deleted successfully!")
+            confirm = input("Are you sure you wanna delete this record? (Y/N): ")
+            if confirm.upper() == 'Y':
+                self.data.drop(index=index_row, inplace=True)
+                self.data.reset_index(drop=True, inplace=True)
+                print("Transaction deleted successfully!")
+            else:
+                print("Deletion canceled.")
         else:
             print("Invalid index")
+
+    def spending_by_category_to_date(self):
+        # Filter data for the current month
+        today = pd.Timestamp.now()
+        current_month_data = self.data[
+            (self.data['Date'].dt.month == today.month) &
+            (self.data['Date'].dt.year == today.year)
+            ]
+
+        spending = current_month_data.groupby('Category')['Amount'].sum()
+        if not spending.empty:
+            print("--- Total Spending by Category ---\n")
+            print(spending)
+        else:
+            print("No transactions recorded for the current month.")
+
+    def monthly_spend_to_date(self):
+        print("--- Cumulated Monthly Spending ---\n")
+        # Calculate spending for the current month
+        today = pd.Timestamp.now()
+        current_month_data = self.data[
+            (self.data['Date'].dt.month == today.month) &
+            (self.data['Date'].dt.year == today.year)
+            ]
+        current_month_spending = current_month_data['Amount'].sum()
+        print(
+            f"\nCurrent Month Spending (from {today.replace(day=1).date()} to {today.date()}): {current_month_spending:.2f}")
+
+    def top_spending_category(self):
+        pass
+
+    def plot_monthly_spending(self):
+        pass
+
+    def historical_monthly_spending(self):
+        self.data['YearMonth'] = self.data['Date'].dt.to_period('M')
+
+        # Calculate spending for each month
+        monthly_spending = self.data.groupby('YearMonth')['Amount'].sum()
+        print("Monthly Spending:")
+        print(monthly_spending)
+
+    def save_csv(self):
+        pass
 
 
 f = Finances()
