@@ -289,6 +289,9 @@ class Finances:
         except Exception as e:
             print(f"An error occurred while saving the file: {e}")
 
+def main():
+    f = Finances()
+    f.start()
 
-f = Finances()
-f.start()
+if __name__ == "__main__":
+    main()
