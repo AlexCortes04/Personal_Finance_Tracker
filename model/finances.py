@@ -14,7 +14,7 @@ class Finances:
 
     def ensure_dates_are_datetime(self):
         if self.data is not None and self.data['Date'].dtype != '<M8[ns]':
-            self.data['Date'] = pd.to_datetime(self.data['Date'], format='%Y-%m-%d')
+            self.data['Date'] = pd.to_datetime(self.data['Date'], format='%Y-%m-%d', errors='coerce').dt.date
 
     def get_min_max_dates(self):
         if self.data is None:

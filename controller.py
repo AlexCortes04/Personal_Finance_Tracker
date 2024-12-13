@@ -1,3 +1,4 @@
+import model.finances
 from view.menu import display_main_menu_and_get_choice
 from view.display import (
     display_message,
@@ -31,9 +32,12 @@ class PersonalFinanceController:
         while True:
             choice = display_main_menu_and_get_choice()
             if choice == 0:
-                self.import_csv_data()
+                data = self.load_previous_session()
+                if data is not None:
+                    self.finances.data = data
+
             elif choice == 1:
-                self.load_previous_session()
+                self.import_csv_data()
             elif choice == 2:
                 self.display_all_transactions()
             elif choice == 3:
@@ -55,13 +59,37 @@ class PersonalFinanceController:
             elif choice == 11:
                 self.display_historical_monthly_category_spending()
             elif choice == 12:
-                self.save_session()
-            elif choice == 13:
                 self.save_transactions_to_csv()
-            elif choice == 14:
-                display_message("Exiting the Personal Finance Tracker. "
-                                "Goodbye!")
-                sys.exit()
+            elif choice == 13:
+                self.exit_program()
+
+    @staticmethod
+    def load_previous_session():
+        try:
+            with open("config.json", "r") as config_file:
+                conf = json.load(config_file)
+            if conf.get("saved"):
+                filename = conf.get("filename")
+                if filename:
+                    print(f"Previous session file found: {filename}")
+                    use_prev = input("Do you want to load the previous session? (Y or N): ").strip().upper()
+                    if use_prev == "Y":
+                        try:
+                            data = pd.read_csv(filename)
+                            print("Previous session loaded:")
+                            return data
+
+                        except Exception as e:
+                            print(f"Error loading previous session file: {e}")
+                else:
+                    print("No filename found in the configuration.")
+            else:
+                print("No previous session saved.")
+        except FileNotFoundError:
+            print("No configuration file found. Starting fresh.")
+        except json.JSONDecodeError:
+            print("Configuration file is corrupted.")
+        return None  # Return None if no session is loaded
 
     def import_csv_data(self):
         file_path = input("Enter file path: ")
@@ -70,9 +98,6 @@ class PersonalFinanceController:
             display_message("Data successfully loaded.\n")
         except Exception as e:
             display_message(f"Error loading data: {e}\n")
-
-    def load_previous_session(self):
-        pass
 
     def display_all_transactions(self):
         data = self.finances.get_all_transactions()
@@ -218,13 +243,25 @@ class PersonalFinanceController:
         historical = calculate_historical_monthly_spending_by_category(data)
         display_historical_monthly_spending_by_category(historical)
 
-    def save_session(self):
+    def save_transactions_to_csv(self):
         data = self.finances.get_all_transactions()
+        if data is None:
+            display_message("No data to save. Import a CSV file first.\n")
+            return
 
+        file_name = input("Enter file name to save (e.g., "
+                          "'transactions.csv'): ").strip()
+        try:
+            self.finances.save_data(file_name)
+            display_message(f"Transactions saved to {file_name} successfully!\n")
+        except Exception as e:
+            display_message(f"An error occurred while saving the file: {e}\n")
+
+    def exit_program(self):
         # Write json to check if there's previous file saved
         save = input("Do you want to save the current transactions (Y or N): ")
         if save.strip().upper() == "Y":
-            filename = input("Enter a filename to save the session (e.g., 'transactions.csv'): ").strip()
+            filename = input("Enter a filename to save the session (e.g., 'transactions.csv'): ")
             # Save current data to a CSV file
             try:
                 self.finances.save_data(filename)
@@ -245,16 +282,6 @@ class PersonalFinanceController:
                 json.dump(conf, config_file, indent=4)
             print("No session saved.")
 
-    def save_transactions_to_csv(self):
-        data = self.finances.get_all_transactions()
-        if data is None:
-            display_message("No data to save. Import a CSV file first.\n")
-            return
-
-        file_name = input("Enter file name to save (e.g., "
-                          "'transactions.csv'): ").strip()
-        try:
-            self.finances.save_data(file_name)
-            display_message(f"Transactions saved to {file_name} successfully!\n")
-        except Exception as e:
-            display_message(f"An error occurred while saving the file: {e}\n")
+        display_message("Exiting the Personal Finance Tracker. "
+                        "Goodbye!")
+        sys.exit()
