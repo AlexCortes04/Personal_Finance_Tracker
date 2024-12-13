@@ -4,9 +4,17 @@ Welcome to the **Personal Finance Tracker**
 
 This is a Python-based project that I developed as part of my Data Science studies at CICCC. The tracker allows users to manage their finances by adding, viewing, editing, and deleting transactions. It also provides various financial insights such as spending by category, monthly spending trends, and historical data analysis.
 
-## Sample 
-![sample_video](https://github.com/user-attachments/assets/714dbda3-34a4-4a45-b1fa-047405408be7)
+---
 
+## Sample video
+![gif](https://github.com/user-attachments/assets/352822d5-8316-447f-83fe-1c71479c8253)
+
+---
+
+## Visualization sample
+![monthly_plot](https://github.com/user-attachments/assets/fc8fbe9c-b1c2-44ab-b37a-65fb19f63ff1)
+
+---
 
 ## 🛠 Features
 
